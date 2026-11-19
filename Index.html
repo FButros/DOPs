@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tango GH – Interactive Daily Operations</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --card-border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-light: #dbeafe;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --warning: #d97706;
+      --warning-bg: #fef3c7;
+      --danger: #dc2626;
+      --phase-active-bg: #eff6ff;
+      --phase-active-border: #3b82f6;
+      --header-bg: #1e40af;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    .top-header {
+      background: var(--header-bg);
+      color: white;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    .top-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .top-header .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    .current-time {
+      font-size: 1.35rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .current-date {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    .main-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 32px 100px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+    }
+
+    .phase-banner {
+      background: var(--card);
+      border: 2px solid var(--phase-active-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .phase-banner .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .phase-banner .phase-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .phase-banner .phase-time {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .progress-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .progress-card h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .progress-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--success);
+      width: 0%;
+      transition: width 0.35s ease;
+      border-radius: 4px;
+    }
+
+    .nav-list {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .nav-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 13px 18px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-item:last-child {
+      border-bottom: none;
+    }
+
+    .nav-item:hover {
+      background: #f8fafc;
+    }
+
+    .nav-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+      border-left: 3px solid var(--accent);
+    }
+
+    .nav-item .nav-time {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 400;
+    }
+
+    /* ===== CONTENT AREA ===== */
+    .content {
+      min-width: 0;
+    }
+
+    .section {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .section.active-phase {
+      border-color: var(--phase-active-border);
+      box-shadow: 0 0 0 1px var(--phase-active-border), 0 4px 12px rgba(37, 99, 235, 0.08);
+    }
+
+    .section-header {
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      background: #f8fafc;
+      border-bottom: 1px solid transparent;
+    }
+
+    .section.open .section-header {
+      border-bottom-color: var(--card-border);
+    }
+
+    .section.active-phase .section-header {
+      background: var(--phase-active-bg);
+    }
+
+    .section-header h2 {
+      font-size: 1.05rem;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-header .time-range {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      background: #e2e8f0;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .section.active-phase .section-header .time-range {
+      background: #bfdbfe;
+      color: #1e40af;
+    }
+
+    .section-header .chevron {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .section.open .section-header .chevron {
+      transform: rotate(180deg);
+    }
+
+    .section-body {
+      display: none;
+      padding: 8px 22px 22px;
+    }
+
+    .section.open .section-body {
+      display: block;
+    }
+
+    /* ===== CHECKLIST ===== */
+    .checklist {
+      list-style: none;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+
+    .checklist input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 3px;
+      accent-color: var(--success);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .checklist label {
+      flex: 1;
+      font-size: 0.95rem;
+      cursor: pointer;
+      line-height: 1.5;
+    }
+
+    .checklist li.done label {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .timestamp {
+      font-size: 0.78rem;
+      color: var(--success);
+      margin-top: 5px;
+      display: none;
+      font-weight: 500;
+    }
+
+    .checklist li.done .timestamp {
+      display: block;
+    }
+
+    .note {
+      font-size: 0.88rem;
+      color: #92400e;
+      background: var(--warning-bg);
+      border-left: 4px solid var(--warning);
+      padding: 12px 14px;
+      margin: 14px 0;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.5;
+    }
+
+    /* ===== NOTES FIELD ===== */
+    .notes-area {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .notes-area label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .notes-area textarea {
+      width: 100%;
+      min-height: 90px;
+      padding: 12px 14px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      resize: vertical;
+      background: #f8fafc;
+      color: var(--text);
+      line-height: 1.5;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .notes-area textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      background: white;
+    }
+
+    .notes-area textarea::placeholder {
+      color: #94a3b8;
+    }
+
+    /* ===== DECISION BOX ===== */
+    .decision-box {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-top: 16px;
+    }
+
+    .decision-box h3 {
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+      color: var(--accent);
+      font-weight: 650;
+    }
+
+    .decision-question {
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+      font-weight: 550;
+    }
+
+    .decision-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .decision-btn {
+      background: white;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+
+    .decision-btn:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .decision-result {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .decision-result.show {
+      display: block;
+    }
+
+    .decision-result.success {
+      background: var(--success-bg);
+      border: 1px solid #86efac;
+      color: #166534;
+    }
+
+    .decision-result.warning {
+      background: var(--warning-bg);
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .gate-info {
+      font-size: 0.92rem;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .gate-info strong {
+      color: var(--accent);
+    }
+
+    /* ===== BOTTOM CONTROLS ===== */
+    .controls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--card-border);
+      padding: 14px 32px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      z-index: 100;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+    }
+
+    .btn {
+      padding: 11px 24px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: #fecaca;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 860px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        padding: 20px 16px 100px;
+      }
+      .sidebar {
+        position: static;
+      }
+      .top-header {
+        padding: 16px 20px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .header-right {
+        text-align: left;
+      }
+      .controls {
+        padding: 12px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div>
+      <h1>Tango GH</h1>
+      <div class="subtitle">Daily Operations Procedures</div>
+    </div>
+    <div class="header-right">
+      <div class="current-time" id="currentTime">--:--</div>
+      <div class="current-date" id="currentDate"></div>
+    </div>
+  </div>
+
+  <div class="main-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="phase-banner" id="currentPhaseBanner">
+        <div class="label">Current Phase</div>
+        <div class="phase-name" id="currentPhaseName">Loading...</div>
+        <div class="phase-time" id="currentPhaseTime"></div>
+      </div>
+
+      <div class="progress-card">
+        <h3>Shift Progress</h3>
+        <div class="progress-text" id="progressText">0 of 0 tasks completed</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="nav-list">
+        <button class="nav-item" data-target="section-ingress" onclick="jumpTo('section-ingress')">
+          Ingress Phase
+          <span class="nav-time">07:10 – 09:00</span>
+        </button>
+        <button class="nav-item" data-target="section-low1" onclick="jumpTo('section-low1')">
+          Low Activity Phase
+          <span class="nav-time">10:00 – 14:15</span>
+        </button>
+        <button class="nav-item" data-target="section-egress" onclick="jumpTo('section-egress')">
+          Egress Phase
+          <span class="nav-time">14:30 – 17:15</span>
+        </button>
+        <button class="nav-item" data-target="section-low2" onclick="jumpTo('section-low2')">
+          Low Activity Phase 2
+          <span class="nav-time">17:30 – Closing</span>
+        </button>
+        <button class="nav-item" data-target="section-closing" onclick="jumpTo('section-closing')">
+          Closing
+          <span class="nav-time">End of shift</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+
+      <!-- INGRESS PHASE -->
+      <div class="section" id="section-ingress" data-phase="ingress">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>Ingress Phase <span class="time-range">07:10 – 09:00</span></h2>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <ul class="checklist">
+            <li>
+              <input type="checkbox" id="ing-1" onchange="updateTask(this)">
+              <label for="ing-1">
+                <strong>07:10</strong> — Open north gates. Open Swing Gate using switchboard. Open pedestrian gates manually. Set up parking signs in front of the main sliding gate.
+                <div class="timestamp"></div>
+              </label>
+            </li>
+            <li>
+              <input type="checkbox" id="ing-2" onchange="updateTask(this)">
+              <label for="ing-2">
+                <strong>07:15</strong> — Parents are now allowed in the carpark.
+                <div class="timestamp"></div>
+              </label>
+            </li>
+            <li>
+              <input type="checkbox" id="ing-3" onchange="updateTask(this)">
+              <label for="ing-3">
+                <strong>07:30 – 09:00</strong> — Armed guard is static outside the main sliding gate, clearing cars before letting them inside. Visually scan the area for anything suspicious.
+                <div class="timestamp"></div>
+              </label>
+            </li>
+          </ul>
+          <div class="note">
+            Parents are strictly not allowed before 07:15 due to insurance purposes, unless there is an emergency.<br>
+            08:00 – 09:00: Middle pedestrian gate is closed.
+          </div>
+
+          <div class="notes-area">
+            <label for="notes-ingress">Notes / Observations</label>
+            <textarea id="notes-ingress" placeholder="Record any incidents, observations, or relevant details..." oninput="saveNotes()"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOW ACTIVITY PHASE 1 -->
+      <div class="section" id="section-low1" data-phase="low1">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>Low Activity Phase <span class="time-range">10:00 – 14:15</span></h2>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="note" style="margin-top:8px;">
+            From 09:30 onwards: No one is allowed in the car park unless they have a pass visible on their dashboard.
+          </div>
+          <ul class="checklist">
+            <li>
+              <input type="checkbox" id="low1-1" onchange="updateTask(this)">
+              <label for="low1-1">Read emails and flag if important</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low1-2" onchange="updateTask(this)">
+              <label for="low1-2">Unflag emails with expired dates</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low1-3" onchange="updateTask(this)">
+              <label for="low1-3">Respond to any emails that require a response</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low1-4" onchange="updateTask(this)">
+              <label for="low1-4">Be active on the cameras</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low1-5" onchange="updateTask(this)">
+              <label for="low1-5">Sign in / out visitors</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low1-6" onchange="updateTask(this)">
+              <label for="low1-6">Clear any person coming to the school or sports centre</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low1-7" onchange="updateTask(this)">
+              <label for="low1-7">Be aware of school buses parking outside the gates for excursions or sports activities and call it on the radio</label>
+            </li>
+          </ul>
+
+          <div class="notes-area">
+            <label for="notes-low1">Notes / Observations</label>
+            <textarea id="notes-low1" placeholder="Record any incidents, observations, or relevant details..." oninput="saveNotes()"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- EGRESS PHASE -->
+      <div class="section" id="section-egress" data-phase="egress">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>Egress Phase <span class="time-range">14:30 – 17:15</span></h2>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <ul class="checklist">
+            <li>
+              <input type="checkbox" id="egr-1" onchange="updateTask(this)">
+              <label for="egr-1">
+                <strong>14:30 sharp</strong> — Armed guard is on point (outside the main sliding gate) and clearing cars.
+                <div class="timestamp"></div>
+              </label>
+            </li>
+            <li>
+              <input type="checkbox" id="egr-2" onchange="updateTask(this)">
+              <label for="egr-2">
+                <strong>14:30 – 16:00</strong> — Cars with passes or no passes can come in until the carpark is full.
+                <div class="timestamp"></div>
+              </label>
+            </li>
+            <li>
+              <input type="checkbox" id="egr-3" onchange="updateTask(this)">
+              <label for="egr-3">
+                <strong>16:00 – 17:15</strong> — Cars with passes can park anywhere. Cars with no passes must use the sports carpark.
+                <div class="timestamp"></div>
+              </label>
+            </li>
+          </ul>
+
+          <div class="note">
+            It is not the duty of the guards to direct traffic when maintenance or sports staff are assisting. Our job is to keep the kids and any community members safe without neglecting duty of care.
+          </div>
+
+          <!-- Decision Helper -->
+          <div class="decision-box">
+            <h3>Carpark Decision Helper</h3>
+            <div id="decisionStart">
+              <div class="decision-question">What is the current time period?</div>
+              <div class="decision-buttons">
+                <button class="decision-btn" onclick="startDecision('1430-1600')">14:30 – 16:00</button>
+                <button class="decision-btn" onclick="startDecision('1600-1715')">16:00 – 17:15</button>
+              </div>
+            </div>
+            <div id="decisionFlow" style="display:none;"></div>
+          </div>
+
+          <div class="notes-area">
+            <label for="notes-egress">Notes / Observations</label>
+            <textarea id="notes-egress" placeholder="Record any incidents, observations, or relevant details..." oninput="saveNotes()"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOW ACTIVITY PHASE 2 -->
+      <div class="section" id="section-low2" data-phase="low2">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>Low Activity Phase 2 <span class="time-range">17:30 – Closing</span></h2>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <ul class="checklist">
+            <li>
+              <input type="checkbox" id="low2-1" onchange="updateTask(this)">
+              <label for="low2-1">Be active on the cameras</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low2-2" onchange="updateTask(this)">
+              <label for="low2-2">Check any new emails</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low2-3" onchange="updateTask(this)">
+              <label for="low2-3">Complete the Daily Operations Brief for the next day</label>
+            </li>
+            <li>
+              <input type="checkbox" id="low2-4" onchange="updateTask(this)">
+              <label for="low2-4">Assist with any enquiries made by the sports centre (emergency or non-emergency)</label>
+            </li>
+          </ul>
+
+          <div class="notes-area">
+            <label for="notes-low2">Notes / Observations</label>
+            <textarea id="notes-low2" placeholder="Record any incidents, observations, or relevant details..." oninput="saveNotes()"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLOSING -->
+      <div class="section" id="section-closing" data-phase="closing">
+        <div class="section-header" onclick="toggleSection(this)">
+          <h2>Closing <span class="time-range">End of shift</span></h2>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="section-body">
+          <ul class="checklist">
+            <li>
+              <input type="checkbox" id="close-1" onchange="updateTask(this)">
+              <label for="close-1">Close all gates and activate bollards</label>
+            </li>
+          </ul>
+
+          <div class="gate-info" style="margin-top:18px;">
+            <strong>Vehicle gates</strong><br>
+            • Sliding gate: two yellow buttons + red close button<br>
+            • Swing gate: two yellow buttons + red close button<br>
+            • Sports carpark exit gate: red close button
+          </div>
+
+          <div class="gate-info" style="margin-top:14px;">
+            <strong>Pedestrian gates</strong><br>
+            Press the blue buttons on the “Press to Close” switch box.<br>
+            Label: “Press to Close” — numbered “box 3”
+          </div>
+
+          <div class="notes-area">
+            <label for="notes-closing">End of Shift Notes</label>
+            <textarea id="notes-closing" placeholder="Any final notes, handover points, or issues to flag for the next shift..." oninput="saveNotes()"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.content -->
+  </div><!-- /.main-container -->
+
+  <!-- BOTTOM CONTROLS -->
+  <div class="controls">
+    <button class="btn btn-danger" onclick="resetAll()">Reset Shift</button>
+    <button class="btn btn-secondary" onclick="expandCurrent()">Expand Current Phase</button>
+    <button class="btn btn-primary" onclick="expandAll()">Expand All</button>
+  </div>
+
+  <script>
+    // ========== TIME & PHASE LOGIC ==========
+    function getCurrentMinutes() {
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function getActivePhase() {
+      const mins = getCurrentMinutes();
+      if (mins >= 7*60 + 10 && mins < 10*60) return 'ingress';
+      if (mins >= 10*60 && mins < 14*60 + 30) return 'low1';
+      if (mins >= 14*60 + 30 && mins < 17*60 + 30) return 'egress';
+      if (mins >= 17*60 + 30) return 'low2';
+      return 'pre';
+    }
+
+    function updateCurrentPhase() {
+      const now = new Date();
+      document.getElementById('currentTime').textContent = formatTime(now);
+      document.getElementById('currentDate').textContent = formatDate(now);
+
+      const phase = getActivePhase();
+      const nameEl = document.getElementById('currentPhaseName');
+      const timeEl = document.getElementById('currentPhaseTime');
+
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active-phase'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      const phaseMap = {
+        pre:     { name: 'Before Opening', time: 'Gates open at 07:10', id: null },
+        ingress: { name: 'Ingress Phase', time: '07:10 – 09:00', id: 'section-ingress' },
+        low1:    { name: 'Low Activity Phase', time: '10:00 – 14:15', id: 'section-low1' },
+        egress:  { name: 'Egress Phase', time: '14:30 – 17:15', id: 'section-egress' },
+        low2:    { name: 'Low Activity Phase 2', time: '17:30 – Closing', id: 'section-low2' }
+      };
+
+      const info = phaseMap[phase] || phaseMap.pre;
+      nameEl.textContent = info.name;
+      timeEl.textContent = info.time;
+
+      if (info.id) {
+        const section = document.getElementById(info.id);
+        if (section) section.classList.add('active-phase');
+        const nav = document.querySelector(`.nav-item[data-target="${info.id}"]`);
+        if (nav) nav.classList.add('active');
+      }
+    }
+
+    // ========== CHECKLIST ==========
+    function updateTask(checkbox) {
+      const li = checkbox.closest('li');
+      const timestamp = li.querySelector('.timestamp');
+      if (checkbox.checked) {
+        li.classList.add('done');
+        if (timestamp) timestamp.textContent = 'Completed at ' + formatTime(new Date());
+      } else {
+        li.classList.remove('done');
+        if (timestamp) timestamp.textContent = '';
+      }
+      updateProgress();
+      saveState();
+    }
+
+    function updateProgress() {
+      const all = document.querySelectorAll('.checklist input[type="checkbox"]');
+      const done = document.querySelectorAll('.checklist input[type="checkbox"]:checked');
+      const total = all.length;
+      const completed = done.length;
+      const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+      document.getElementById('progressText').textContent = `${completed} of ${total} tasks completed`;
+      document.getElementById('progressFill').style.width = pct + '%';
+    }
+
+    // ========== SECTION TOGGLE ==========
+    function toggleSection(header) {
+      header.closest('.section').classList.toggle('open');
+    }
+
+    function jumpTo(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('open'));
+      const section = document.getElementById(id);
+      if (section) {
+        section.classList.add('open');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function expandCurrent() {
+      const phase = getActivePhase();
+      const map = { ingress: 'section-ingress', low1: 'section-low1', egress: 'section-egress', low2: 'section-low2' };
+      const id = map[phase];
+      if (id) jumpTo(id);
+    }
+
+    function expandAll() {
+      document.querySelectorAll('.section').forEach(s => s.classList.add('open'));
+    }
+
+    // ========== DECISION TREE ==========
+    function startDecision(period) {
+      const flow = document.getElementById('decisionFlow');
+      document.getElementById('decisionStart').style.display = 'none';
+      flow.style.display = 'block';
+
+      if (period === '1430-1600') {
+        flow.innerHTML = `
+          <div class="decision-question">Does the carpark currently have space?</div>
+          <div class="decision-buttons">
+            <button class="decision-btn" onclick="showResult('1430-yes')">Yes – there is space</button>
+            <button class="decision-btn" onclick="showResult('1430-no')">No – carpark is full</button>
+          </div>
+          <button class="decision-btn" style="margin-top:14px;" onclick="resetDecision()">← Back</button>
+        `;
+      } else {
+        flow.innerHTML = `
+          <div class="decision-question">Does the vehicle have a pass visible on the dashboard?</div>
+          <div class="decision-buttons">
+            <button class="decision-btn" onclick="decisionPass(true)">Yes – has a pass</button>
+            <button class="decision-btn" onclick="decisionPass(false)">No – no pass</button>
+          </div>
+          <button class="decision-btn" style="margin-top:14px;" onclick="resetDecision()">← Back</button>
+        `;
+      }
+    }
+
+    function decisionPass(hasPass) {
+      const flow = document.getElementById('decisionFlow');
+      if (hasPass) {
+        flow.innerHTML = `
+          <div class="decision-result show success">
+            <strong>Action:</strong> Allow the vehicle to park anywhere in the car park.
+          </div>
+          <button class="decision-btn" style="margin-top:14px;" onclick="resetDecision()">← Start over</button>
+        `;
+      } else {
+        flow.innerHTML = `
+          <div class="decision-question">Is the sports carpark full?</div>
+          <div class="decision-buttons">
+            <button class="decision-btn" onclick="showResult('sports-space')">No – sports carpark has space</button>
+            <button class="decision-btn" onclick="showResult('sports-full')">Yes – sports carpark is full</button>
+          </div>
+          <button class="decision-btn" style="margin-top:14px;" onclick="resetDecision()">← Back</button>
+        `;
+      }
+    }
+
+    function showResult(type) {
+      const flow = document.getElementById('decisionFlow');
+      let html = '';
+      if (type === '1430-yes') {
+        html = `<div class="decision-result show success"><strong>Action:</strong> Allow the vehicle in (with or without a pass).</div>`;
+      } else if (type === '1430-no') {
+        html = `<div class="decision-result show warning"><strong>Action:</strong> Do not allow further vehicles in. The carpark is full.</div>`;
+      } else if (type === 'sports-space') {
+        html = `<div class="decision-result show success"><strong>Action:</strong> Direct the vehicle to park in the sports carpark only.</div>`;
+      } else if (type === 'sports-full') {
+        html = `<div class="decision-result show warning"><strong>Action:</strong> Make it clear to them that the sports carpark is full and they need to find parking outside the premises.</div>`;
+      }
+      flow.innerHTML = html + `<button class="decision-btn" style="margin-top:14px;" onclick="resetDecision()">← Start over</button>`;
+    }
+
+    function resetDecision() {
+      document.getElementById('decisionStart').style.display = 'block';
+      document.getElementById('decisionFlow').style.display = 'none';
+      document.getElementById('decisionFlow').innerHTML = '';
+    }
+
+    // ========== SAVE / LOAD ==========
+    function saveState() {
+      const state = {};
+      document.querySelectorAll('.checklist input[type="checkbox"]').forEach(cb => {
+        state[cb.id] = cb.checked;
+      });
+      localStorage.setItem('tangoGH_state', JSON.stringify(state));
+    }
+
+    function saveNotes() {
+      const notes = {};
+      ['notes-ingress', 'notes-low1', 'notes-egress', 'notes-low2', 'notes-closing'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) notes[id] = el.value;
+      });
+      localStorage.setItem('tangoGH_notes', JSON.stringify(notes));
+    }
+
+    function loadState() {
+      try {
+        const state = JSON.parse(localStorage.getItem('tangoGH_state') || '{}');
+        Object.keys(state).forEach(id => {
+          const cb = document.getElementById(id);
+          if (cb) {
+            cb.checked = state[id];
+            updateTask(cb);
+          }
+        });
+      } catch (e) {}
+
+      try {
+        const notes = JSON.parse(localStorage.getItem('tangoGH_notes') || '{}');
+        Object.keys(notes).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = notes[id];
+        });
+      } catch (e) {}
+    }
+
+    function resetAll() {
+      if (!confirm('Reset all checklists and notes for a new shift?')) return;
+      document.querySelectorAll('.checklist input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        updateTask(cb);
+      });
+      ['notes-ingress', 'notes-low1', 'notes-egress', 'notes-low2', 'notes-closing'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      localStorage.removeItem('tangoGH_state');
+      localStorage.removeItem('tangoGH_notes');
+      resetDecision();
+      updateProgress();
+    }
+
+    // ========== INIT ==========
+    updateCurrentPhase();
+    setInterval(updateCurrentPhase, 30000);
+    loadState();
+    updateProgress();
+    setTimeout(expandCurrent, 200);
+  </script>
+</body>
+</html>
